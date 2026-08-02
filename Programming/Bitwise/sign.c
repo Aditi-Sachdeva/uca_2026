@@ -1,0 +1,17 @@
+#include <stdio.h>
+
+int sign(int x){
+    
+    return (x >> 31) | (!!x);
+}
+
+int main(){
+
+    int x;
+
+    scanf("%d",&x);
+
+    int ans = sign(x);
+
+    printf("%d\n",ans);
+}
