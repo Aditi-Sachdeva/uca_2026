@@ -1,5 +1,5 @@
 
-function * fibonacci(){
+function* fibonacci(){
 
     let a = 0;
     let b = 1;
