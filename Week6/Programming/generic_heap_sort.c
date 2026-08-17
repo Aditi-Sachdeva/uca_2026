@@ -1,111 +1,144 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
-void swap(void *a, void *b, size_t size){
+struct student{
+    int id;
+    float cgpa;
+    char *name;
+};
 
-    char temp[size];
+void swap(void *a, int i, int j, int sz){
+    
+    char *temp = malloc(sz);
+    char *t1 = (char *)a + i * sz;
+    char *t2 = (char *)a + j * sz;
 
-    memcpy(temp, a, size);
-    memcpy(a, b, size);
-    memcpy(b, temp, size);
+    memcpy(temp, t1, sz);
+    memcpy(t1, t2, sz);
+    memcpy(t2, temp, sz);
+
+    free(temp);
 }
 
-int compare_int(const void *a, const void *b){
+void heapify(void *a, int n, int i, int sz, int (*cmp)(const void *, const void *)){
 
-    int x = *(const int *)a;
-    int y = *(const int *)b;
+    int largest = i;
+    int l = 2 * i + 1;
+    int r = 2 * i + 2;
 
-    if(x < y){
-        return -1;
-    }
-    else if(x > y){
-        return 1;
-    }
-    else{
-        return 0;
-    }
-}
-
-int compare_char(const void *a, const void *b){
-
-    char x = *(const char *)a;
-    char y = *(const char *)b;
-
-    if(x > y){
-        return 1;
-    }
-    else if (x < y){
-        return -1;
-    }
-    else{
-        return 0;
-    }
-}
-
-void heapify(void *arr, size_t n, size_t i, size_t size, int (*compare)(const void *, const void *)){
-
-    size_t largest = i;
-    size_t left = 2 * i + 1;
-    size_t right = 2 * i + 2;
-
-    if(left < n && compare((char *)arr + left * size, (char *)arr + largest * size) > 0){
-
-        largest = left;
+    if (l < n){
+        if (cmp((char *)a + l * sz,(char *)a + largest * sz) > 0){
+            largest = l;
+        }
     }
 
-    if(right < n && compare((char *)arr + right * size, (char *)arr + largest * size) > 0){
-
-        largest = right;
+    if (r < n){
+        if (cmp((char *)a + r * sz,(char *)a + largest * sz) > 0){
+            largest = r;
+        }
     }
 
-    if(largest != i){
-
-        swap((char *)arr + i * size, (char *)arr + largest * size, size);
-
-        heapify(arr, n, largest, size, compare);
+    if (largest != i){
+        swap(a, i, largest, sz);
+        heapify(a, n, largest, sz, cmp);
     }
 }
 
-void heap_sort(void *arr, size_t n, size_t size, int (*compare)(const void *, const void *)){
+void heap_sort(void *a, int n, int sz,int (*cmp)(const void *, const void *)){
 
-    for(size_t i = n / 2; i > 0; i--){
-        heapify(arr, n, i - 1, size, compare);
+    for (int i = n / 2 - 1; i >= 0; i--){
+        heapify(a, n, i, sz, cmp);
     }
 
-    for(size_t i = n; i > 1; i--){
-
-        swap((char *)arr,(char *)arr + (i - 1) * size,size);
-
-        heapify(arr, i - 1, 0, size, compare);
+    for (int i = n - 1; i > 0; i--){
+        swap(a, 0, i, sz);
+        heapify(a, i, 0, sz, cmp);
     }
 }
 
+int intCmp(const void *i, const void *j){
+    
+    int x = *(const int *)i;
+    int y = *(const int *)j;
+
+    return (x > y) - (x < y);
+}
+
+int floatCmp(const void *i, const void *j){
+    
+    float x = *(const float *)i;
+    float y = *(const float *)j;
+
+    return (x > y) - (x < y);
+}
+
+int studentCgpaCmp(const void *i, const void *j){
+    
+    const struct student *x = (const struct student *)i;
+    const struct student *y = (const struct student *)j;
+
+    return (x->cgpa > y->cgpa) - (x->cgpa < y->cgpa);
+}
+
+void printInt(int *a, int n){
+    
+    for (int i = 0; i < n; i++){
+        printf("%d ", a[i]);
+    }
+
+    printf("\n");
+}
+
+void printFloat(float *a, int n){
+    
+    for (int i = 0; i < n; i++){
+        printf("%.2f ", a[i]);
+    }
+
+    printf("\n");
+}
+
+void printStudents(struct student *s, int n){
+    
+    for (int i = 0; i < n; i++){
+        printf("%d:%s:%.2f ", s[i].id, s[i].name, s[i].cgpa);
+    }
+
+    printf("\n");
+}
 
 int main(){
+    
+    int arr[] = {12, 11, 13, 5, 6, 7};
+    int n = sizeof(arr) / sizeof(arr[0]);
 
-    int arr1[] = {40, 10, 30, 50, 20};
+    heap_sort(arr, n, sizeof(int), intCmp);
 
-    size_t n = sizeof(arr1) / sizeof(arr1[0]);
+    printf("Sorted integers: ");
+    printInt(arr, n);
 
-    heap_sort(arr1, n, sizeof(int), compare_int);
+    float f[] = {1.2f, 3.4f, 0.7f, 0.8f, 0.4f, 0.3f};
+    int nf = sizeof(f) / sizeof(f[0]);
 
-    for (size_t i = 0; i < n; i++){
-        printf("%d ", arr1[i]);
-    }
+    heap_sort(f, nf, sizeof(float), floatCmp);
 
-    printf("\n");
+    printf("Sorted floats: ");
+    printFloat(f, nf);
 
-    char arr2[] = {'c', 'a', 'e', 'b', 'd'};
+    struct student s[] = {
+        {1, 3.2f, "Alice"},
+        {2, 2.5f, "Bob"},
+        {3, 3.8f, "Charlie"},
+        {4, 1.9f, "David"}
+    };
 
-    size_t m = sizeof(arr2) / sizeof(arr2[0]);
+    int ns = sizeof(s) / sizeof(s[0]);
 
-    heap_sort(arr2, m, sizeof(char), compare_char);
+    heap_sort(s, ns, sizeof(struct student), studentCgpaCmp);
 
-    for (size_t i = 0; i < m; i++){
-        printf("%c ", arr2[i]);
-    }
-
-    printf("\n");
+    printf("Sorted students by CGPA: ");
+    printStudents(s, ns);
 
     return 0;
 }
